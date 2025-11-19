@@ -20,6 +20,7 @@ export default function APIKeyUpdateForm(props) {
     ...rest
   } = props;
   const initialValues = {
+    user_email: "",
     key: "",
     status: "",
     requests_made: "",
@@ -27,6 +28,7 @@ export default function APIKeyUpdateForm(props) {
     total_spent: "",
     last_used: "",
   };
+  const [user_email, setUser_email] = React.useState(initialValues.user_email);
   const [key, setKey] = React.useState(initialValues.key);
   const [status, setStatus] = React.useState(initialValues.status);
   const [requests_made, setRequests_made] = React.useState(
@@ -44,6 +46,7 @@ export default function APIKeyUpdateForm(props) {
     const cleanValues = aPIKeyRecord
       ? { ...initialValues, ...aPIKeyRecord }
       : initialValues;
+    setUser_email(cleanValues.user_email);
     setKey(cleanValues.key);
     setStatus(cleanValues.status);
     setRequests_made(cleanValues.requests_made);
@@ -69,6 +72,7 @@ export default function APIKeyUpdateForm(props) {
   }, [idProp, aPIKeyModelProp]);
   React.useEffect(resetStateValues, [aPIKeyRecord]);
   const validations = {
+    user_email: [],
     key: [{ type: "Required" }],
     status: [],
     requests_made: [],
@@ -119,6 +123,7 @@ export default function APIKeyUpdateForm(props) {
       onSubmit={async (event) => {
         event.preventDefault();
         let modelFields = {
+          user_email: user_email ?? null,
           key,
           status: status ?? null,
           requests_made: requests_made ?? null,
@@ -177,6 +182,36 @@ export default function APIKeyUpdateForm(props) {
       {...rest}
     >
       <TextField
+        label="User email"
+        isRequired={false}
+        isReadOnly={false}
+        value={user_email}
+        onChange={(e) => {
+          let { value } = e.target;
+          if (onChange) {
+            const modelFields = {
+              user_email: value,
+              key,
+              status,
+              requests_made,
+              requests_this_month,
+              total_spent,
+              last_used,
+            };
+            const result = onChange(modelFields);
+            value = result?.user_email ?? value;
+          }
+          if (errors.user_email?.hasError) {
+            runValidationTasks("user_email", value);
+          }
+          setUser_email(value);
+        }}
+        onBlur={() => runValidationTasks("user_email", user_email)}
+        errorMessage={errors.user_email?.errorMessage}
+        hasError={errors.user_email?.hasError}
+        {...getOverrideProps(overrides, "user_email")}
+      ></TextField>
+      <TextField
         label="Key"
         isRequired={true}
         isReadOnly={false}
@@ -185,6 +220,7 @@ export default function APIKeyUpdateForm(props) {
           let { value } = e.target;
           if (onChange) {
             const modelFields = {
+              user_email,
               key: value,
               status,
               requests_made,
@@ -214,6 +250,7 @@ export default function APIKeyUpdateForm(props) {
           let { value } = e.target;
           if (onChange) {
             const modelFields = {
+              user_email,
               key,
               status: value,
               requests_made,
@@ -247,6 +284,7 @@ export default function APIKeyUpdateForm(props) {
             : parseInt(e.target.value);
           if (onChange) {
             const modelFields = {
+              user_email,
               key,
               status,
               requests_made: value,
@@ -280,6 +318,7 @@ export default function APIKeyUpdateForm(props) {
             : parseInt(e.target.value);
           if (onChange) {
             const modelFields = {
+              user_email,
               key,
               status,
               requests_made,
@@ -315,6 +354,7 @@ export default function APIKeyUpdateForm(props) {
             : parseFloat(e.target.value);
           if (onChange) {
             const modelFields = {
+              user_email,
               key,
               status,
               requests_made,
@@ -346,6 +386,7 @@ export default function APIKeyUpdateForm(props) {
             e.target.value === "" ? "" : new Date(e.target.value).toISOString();
           if (onChange) {
             const modelFields = {
+              user_email,
               key,
               status,
               requests_made,

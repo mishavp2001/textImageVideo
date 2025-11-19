@@ -198,6 +198,7 @@ export default function APICreateForm(props) {
     headers_required: [],
     total_requests: "",
     total_revenue: "",
+    owner_id: "",
   };
   const [name, setName] = React.useState(initialValues.name);
   const [description, setDescription] = React.useState(
@@ -230,6 +231,7 @@ export default function APICreateForm(props) {
   const [total_revenue, setTotal_revenue] = React.useState(
     initialValues.total_revenue
   );
+  const [owner_id, setOwner_id] = React.useState(initialValues.owner_id);
   const [errors, setErrors] = React.useState({});
   const resetStateValues = () => {
     setName(initialValues.name);
@@ -246,6 +248,7 @@ export default function APICreateForm(props) {
     setCurrentHeaders_requiredValue("");
     setTotal_requests(initialValues.total_requests);
     setTotal_revenue(initialValues.total_revenue);
+    setOwner_id(initialValues.owner_id);
     setErrors({});
   };
   const [currentHeaders_requiredValue, setCurrentHeaders_requiredValue] =
@@ -265,6 +268,7 @@ export default function APICreateForm(props) {
     headers_required: [],
     total_requests: [],
     total_revenue: [],
+    owner_id: [],
   };
   const runValidationTasks = async (
     fieldName,
@@ -305,6 +309,7 @@ export default function APICreateForm(props) {
           headers_required,
           total_requests,
           total_revenue,
+          owner_id,
         };
         const validationResponses = await Promise.all(
           Object.keys(validations).reduce((promises, fieldName) => {
@@ -380,6 +385,7 @@ export default function APICreateForm(props) {
               headers_required,
               total_requests,
               total_revenue,
+              owner_id,
             };
             const result = onChange(modelFields);
             value = result?.name ?? value;
@@ -416,6 +422,7 @@ export default function APICreateForm(props) {
               headers_required,
               total_requests,
               total_revenue,
+              owner_id,
             };
             const result = onChange(modelFields);
             value = result?.description ?? value;
@@ -452,6 +459,7 @@ export default function APICreateForm(props) {
               headers_required,
               total_requests,
               total_revenue,
+              owner_id,
             };
             const result = onChange(modelFields);
             value = result?.endpoint_url ?? value;
@@ -488,6 +496,7 @@ export default function APICreateForm(props) {
               headers_required,
               total_requests,
               total_revenue,
+              owner_id,
             };
             const result = onChange(modelFields);
             value = result?.method ?? value;
@@ -524,6 +533,7 @@ export default function APICreateForm(props) {
               headers_required,
               total_requests,
               total_revenue,
+              owner_id,
             };
             const result = onChange(modelFields);
             value = result?.category ?? value;
@@ -560,6 +570,7 @@ export default function APICreateForm(props) {
               headers_required,
               total_requests,
               total_revenue,
+              owner_id,
             };
             const result = onChange(modelFields);
             value = result?.status ?? value;
@@ -600,6 +611,7 @@ export default function APICreateForm(props) {
               headers_required,
               total_requests,
               total_revenue,
+              owner_id,
             };
             const result = onChange(modelFields);
             value = result?.free_requests_limit ?? value;
@@ -642,6 +654,7 @@ export default function APICreateForm(props) {
               headers_required,
               total_requests,
               total_revenue,
+              owner_id,
             };
             const result = onChange(modelFields);
             value = result?.price_per_request ?? value;
@@ -679,6 +692,7 @@ export default function APICreateForm(props) {
               headers_required,
               total_requests,
               total_revenue,
+              owner_id,
             };
             const result = onChange(modelFields);
             value = result?.example_request ?? value;
@@ -714,6 +728,7 @@ export default function APICreateForm(props) {
               headers_required,
               total_requests,
               total_revenue,
+              owner_id,
             };
             const result = onChange(modelFields);
             value = result?.example_response ?? value;
@@ -746,6 +761,7 @@ export default function APICreateForm(props) {
               headers_required: values,
               total_requests,
               total_revenue,
+              owner_id,
             };
             const result = onChange(modelFields);
             values = result?.headers_required ?? values;
@@ -816,6 +832,7 @@ export default function APICreateForm(props) {
               headers_required,
               total_requests: value,
               total_revenue,
+              owner_id,
             };
             const result = onChange(modelFields);
             value = result?.total_requests ?? value;
@@ -856,6 +873,7 @@ export default function APICreateForm(props) {
               headers_required,
               total_requests,
               total_revenue: value,
+              owner_id,
             };
             const result = onChange(modelFields);
             value = result?.total_revenue ?? value;
@@ -869,6 +887,43 @@ export default function APICreateForm(props) {
         errorMessage={errors.total_revenue?.errorMessage}
         hasError={errors.total_revenue?.hasError}
         {...getOverrideProps(overrides, "total_revenue")}
+      ></TextField>
+      <TextField
+        label="Owner id"
+        isRequired={false}
+        isReadOnly={false}
+        value={owner_id}
+        onChange={(e) => {
+          let { value } = e.target;
+          if (onChange) {
+            const modelFields = {
+              name,
+              description,
+              endpoint_url,
+              method,
+              category,
+              status,
+              free_requests_limit,
+              price_per_request,
+              example_request,
+              example_response,
+              headers_required,
+              total_requests,
+              total_revenue,
+              owner_id: value,
+            };
+            const result = onChange(modelFields);
+            value = result?.owner_id ?? value;
+          }
+          if (errors.owner_id?.hasError) {
+            runValidationTasks("owner_id", value);
+          }
+          setOwner_id(value);
+        }}
+        onBlur={() => runValidationTasks("owner_id", owner_id)}
+        errorMessage={errors.owner_id?.errorMessage}
+        hasError={errors.owner_id?.hasError}
+        {...getOverrideProps(overrides, "owner_id")}
       ></TextField>
       <Flex
         justifyContent="space-between"

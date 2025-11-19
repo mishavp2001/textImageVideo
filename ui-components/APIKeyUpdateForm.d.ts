@@ -17,6 +17,7 @@ export declare type ValidationResponse = {
 };
 export declare type ValidationFunction<T> = (value: T, validationResponse: ValidationResponse) => ValidationResponse | Promise<ValidationResponse>;
 export declare type APIKeyUpdateFormInputValues = {
+    user_email?: string;
     key?: string;
     status?: string;
     requests_made?: number;
@@ -25,6 +26,7 @@ export declare type APIKeyUpdateFormInputValues = {
     last_used?: string;
 };
 export declare type APIKeyUpdateFormValidationValues = {
+    user_email?: ValidationFunction<string>;
     key?: ValidationFunction<string>;
     status?: ValidationFunction<string>;
     requests_made?: ValidationFunction<number>;
@@ -35,6 +37,7 @@ export declare type APIKeyUpdateFormValidationValues = {
 export declare type PrimitiveOverrideProps<T> = Partial<T> & React.DOMAttributes<HTMLDivElement>;
 export declare type APIKeyUpdateFormOverridesProps = {
     APIKeyUpdateFormGrid?: PrimitiveOverrideProps<GridProps>;
+    user_email?: PrimitiveOverrideProps<TextFieldProps>;
     key?: PrimitiveOverrideProps<TextFieldProps>;
     status?: PrimitiveOverrideProps<TextFieldProps>;
     requests_made?: PrimitiveOverrideProps<TextFieldProps>;

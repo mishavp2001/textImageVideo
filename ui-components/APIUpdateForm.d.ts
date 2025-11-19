@@ -30,6 +30,7 @@ export declare type APIUpdateFormInputValues = {
     headers_required?: string[];
     total_requests?: number;
     total_revenue?: number;
+    owner_id?: string;
 };
 export declare type APIUpdateFormValidationValues = {
     name?: ValidationFunction<string>;
@@ -45,6 +46,7 @@ export declare type APIUpdateFormValidationValues = {
     headers_required?: ValidationFunction<string>;
     total_requests?: ValidationFunction<number>;
     total_revenue?: ValidationFunction<number>;
+    owner_id?: ValidationFunction<string>;
 };
 export declare type PrimitiveOverrideProps<T> = Partial<T> & React.DOMAttributes<HTMLDivElement>;
 export declare type APIUpdateFormOverridesProps = {
@@ -62,6 +64,7 @@ export declare type APIUpdateFormOverridesProps = {
     headers_required?: PrimitiveOverrideProps<TextFieldProps>;
     total_requests?: PrimitiveOverrideProps<TextFieldProps>;
     total_revenue?: PrimitiveOverrideProps<TextFieldProps>;
+    owner_id?: PrimitiveOverrideProps<TextFieldProps>;
 } & EscapeHatchProps;
 export declare type APIUpdateFormProps = React.PropsWithChildren<{
     overrides?: APIUpdateFormOverridesProps | undefined | null;

@@ -20,6 +20,7 @@ export const getAPI = /* GraphQL */ `
       id
       method
       name
+      owner_id
       price_per_request
       status
       total_requests
@@ -48,6 +49,7 @@ export const getAPIKey = /* GraphQL */ `
         id
         method
         name
+        owner_id
         price_per_request
         status
         total_requests
@@ -69,6 +71,20 @@ export const getAPIKey = /* GraphQL */ `
         nextToken
         __typename
       }
+      user {
+        createdAt
+        credit_card_last4
+        email
+        id
+        owner
+        payment_method_id
+        stripe_customer_id
+        total_spent
+        updatedAt
+        __typename
+      }
+      user_email
+      user_id
       __typename
     }
   }
@@ -88,6 +104,7 @@ export const getAPIUsage = /* GraphQL */ `
         id
         method
         name
+        owner_id
         price_per_request
         status
         total_requests
@@ -106,6 +123,8 @@ export const getAPIUsage = /* GraphQL */ `
         status
         total_spent
         updatedAt
+        user_email
+        user_id
         __typename
       }
       api_id
@@ -118,6 +137,26 @@ export const getAPIUsage = /* GraphQL */ `
       response_status
       response_time
       timestamp
+      updatedAt
+      __typename
+    }
+  }
+`;
+export const getAPIUser = /* GraphQL */ `
+  query GetAPIUser($id: ID!) {
+    getAPIUser(id: $id) {
+      apiKeys {
+        nextToken
+        __typename
+      }
+      createdAt
+      credit_card_last4
+      email
+      id
+      owner
+      payment_method_id
+      stripe_customer_id
+      total_spent
       updatedAt
       __typename
     }
@@ -152,6 +191,8 @@ export const listAPIKeys = /* GraphQL */ `
         status
         total_spent
         updatedAt
+        user_email
+        user_id
         __typename
       }
       nextToken
@@ -178,6 +219,7 @@ export const listAPIS = /* GraphQL */ `
         id
         method
         name
+        owner_id
         price_per_request
         status
         total_requests
@@ -208,6 +250,30 @@ export const listAPIUsages = /* GraphQL */ `
         response_status
         response_time
         timestamp
+        updatedAt
+        __typename
+      }
+      nextToken
+      __typename
+    }
+  }
+`;
+export const listAPIUsers = /* GraphQL */ `
+  query ListAPIUsers(
+    $filter: ModelAPIUserFilterInput
+    $limit: Int
+    $nextToken: String
+  ) {
+    listAPIUsers(filter: $filter, limit: $limit, nextToken: $nextToken) {
+      items {
+        createdAt
+        credit_card_last4
+        email
+        id
+        owner
+        payment_method_id
+        stripe_customer_id
+        total_spent
         updatedAt
         __typename
       }

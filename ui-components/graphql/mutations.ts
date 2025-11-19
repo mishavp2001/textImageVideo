@@ -23,6 +23,7 @@ export const createAPI = /* GraphQL */ `
       id
       method
       name
+      owner_id
       price_per_request
       status
       total_requests
@@ -54,6 +55,7 @@ export const createAPIKey = /* GraphQL */ `
         id
         method
         name
+        owner_id
         price_per_request
         status
         total_requests
@@ -75,6 +77,20 @@ export const createAPIKey = /* GraphQL */ `
         nextToken
         __typename
       }
+      user {
+        createdAt
+        credit_card_last4
+        email
+        id
+        owner
+        payment_method_id
+        stripe_customer_id
+        total_spent
+        updatedAt
+        __typename
+      }
+      user_email
+      user_id
       __typename
     }
   }
@@ -97,6 +113,7 @@ export const createAPIUsage = /* GraphQL */ `
         id
         method
         name
+        owner_id
         price_per_request
         status
         total_requests
@@ -115,6 +132,8 @@ export const createAPIUsage = /* GraphQL */ `
         status
         total_spent
         updatedAt
+        user_email
+        user_id
         __typename
       }
       api_id
@@ -127,6 +146,29 @@ export const createAPIUsage = /* GraphQL */ `
       response_status
       response_time
       timestamp
+      updatedAt
+      __typename
+    }
+  }
+`;
+export const createAPIUser = /* GraphQL */ `
+  mutation CreateAPIUser(
+    $condition: ModelAPIUserConditionInput
+    $input: CreateAPIUserInput!
+  ) {
+    createAPIUser(condition: $condition, input: $input) {
+      apiKeys {
+        nextToken
+        __typename
+      }
+      createdAt
+      credit_card_last4
+      email
+      id
+      owner
+      payment_method_id
+      stripe_customer_id
+      total_spent
       updatedAt
       __typename
     }
@@ -167,6 +209,7 @@ export const deleteAPI = /* GraphQL */ `
       id
       method
       name
+      owner_id
       price_per_request
       status
       total_requests
@@ -198,6 +241,7 @@ export const deleteAPIKey = /* GraphQL */ `
         id
         method
         name
+        owner_id
         price_per_request
         status
         total_requests
@@ -219,6 +263,20 @@ export const deleteAPIKey = /* GraphQL */ `
         nextToken
         __typename
       }
+      user {
+        createdAt
+        credit_card_last4
+        email
+        id
+        owner
+        payment_method_id
+        stripe_customer_id
+        total_spent
+        updatedAt
+        __typename
+      }
+      user_email
+      user_id
       __typename
     }
   }
@@ -241,6 +299,7 @@ export const deleteAPIUsage = /* GraphQL */ `
         id
         method
         name
+        owner_id
         price_per_request
         status
         total_requests
@@ -259,6 +318,8 @@ export const deleteAPIUsage = /* GraphQL */ `
         status
         total_spent
         updatedAt
+        user_email
+        user_id
         __typename
       }
       api_id
@@ -271,6 +332,29 @@ export const deleteAPIUsage = /* GraphQL */ `
       response_status
       response_time
       timestamp
+      updatedAt
+      __typename
+    }
+  }
+`;
+export const deleteAPIUser = /* GraphQL */ `
+  mutation DeleteAPIUser(
+    $condition: ModelAPIUserConditionInput
+    $input: DeleteAPIUserInput!
+  ) {
+    deleteAPIUser(condition: $condition, input: $input) {
+      apiKeys {
+        nextToken
+        __typename
+      }
+      createdAt
+      credit_card_last4
+      email
+      id
+      owner
+      payment_method_id
+      stripe_customer_id
+      total_spent
       updatedAt
       __typename
     }
@@ -311,6 +395,7 @@ export const updateAPI = /* GraphQL */ `
       id
       method
       name
+      owner_id
       price_per_request
       status
       total_requests
@@ -342,6 +427,7 @@ export const updateAPIKey = /* GraphQL */ `
         id
         method
         name
+        owner_id
         price_per_request
         status
         total_requests
@@ -363,6 +449,20 @@ export const updateAPIKey = /* GraphQL */ `
         nextToken
         __typename
       }
+      user {
+        createdAt
+        credit_card_last4
+        email
+        id
+        owner
+        payment_method_id
+        stripe_customer_id
+        total_spent
+        updatedAt
+        __typename
+      }
+      user_email
+      user_id
       __typename
     }
   }
@@ -385,6 +485,7 @@ export const updateAPIUsage = /* GraphQL */ `
         id
         method
         name
+        owner_id
         price_per_request
         status
         total_requests
@@ -403,6 +504,8 @@ export const updateAPIUsage = /* GraphQL */ `
         status
         total_spent
         updatedAt
+        user_email
+        user_id
         __typename
       }
       api_id
@@ -415,6 +518,29 @@ export const updateAPIUsage = /* GraphQL */ `
       response_status
       response_time
       timestamp
+      updatedAt
+      __typename
+    }
+  }
+`;
+export const updateAPIUser = /* GraphQL */ `
+  mutation UpdateAPIUser(
+    $condition: ModelAPIUserConditionInput
+    $input: UpdateAPIUserInput!
+  ) {
+    updateAPIUser(condition: $condition, input: $input) {
+      apiKeys {
+        nextToken
+        __typename
+      }
+      createdAt
+      credit_card_last4
+      email
+      id
+      owner
+      payment_method_id
+      stripe_customer_id
+      total_spent
       updatedAt
       __typename
     }

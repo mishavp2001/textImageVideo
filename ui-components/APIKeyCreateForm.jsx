@@ -15,11 +15,10 @@ export default function APIKeyCreateForm(props) {
     onValidate,
     onChange,
     overrides,
-    api_id,
     ...rest
   } = props;
   const initialValues = {
-    api_id: api_id,
+    user_email: "",
     key: "",
     status: "",
     requests_made: "",
@@ -27,7 +26,7 @@ export default function APIKeyCreateForm(props) {
     total_spent: "",
     last_used: "",
   };
-  const [api_id_state, setApi_id] = React.useState(initialValues.api_id);
+  const [user_email, setUser_email] = React.useState(initialValues.user_email);
   const [key, setKey] = React.useState(initialValues.key);
   const [status, setStatus] = React.useState(initialValues.status);
   const [requests_made, setRequests_made] = React.useState(
@@ -42,7 +41,7 @@ export default function APIKeyCreateForm(props) {
   const [last_used, setLast_used] = React.useState(initialValues.last_used);
   const [errors, setErrors] = React.useState({});
   const resetStateValues = () => {
-    setApi_id(initialValues.api_id);
+    setUser_email(initialValues.user_email);
     setKey(initialValues.key);
     setStatus(initialValues.status);
     setRequests_made(initialValues.requests_made);
@@ -52,6 +51,7 @@ export default function APIKeyCreateForm(props) {
     setErrors({});
   };
   const validations = {
+    user_email: [],
     key: [{ type: "Required" }],
     status: [],
     requests_made: [],
@@ -102,7 +102,7 @@ export default function APIKeyCreateForm(props) {
       onSubmit={async (event) => {
         event.preventDefault();
         let modelFields = {
-          api_id: api_id || api_id_state,
+          user_email,
           key,
           status,
           requests_made,
@@ -163,6 +163,36 @@ export default function APIKeyCreateForm(props) {
       {...rest}
     >
       <TextField
+        label="User email"
+        isRequired={false}
+        isReadOnly={false}
+        value={user_email}
+        onChange={(e) => {
+          let { value } = e.target;
+          if (onChange) {
+            const modelFields = {
+              user_email: value,
+              key,
+              status,
+              requests_made,
+              requests_this_month,
+              total_spent,
+              last_used,
+            };
+            const result = onChange(modelFields);
+            value = result?.user_email ?? value;
+          }
+          if (errors.user_email?.hasError) {
+            runValidationTasks("user_email", value);
+          }
+          setUser_email(value);
+        }}
+        onBlur={() => runValidationTasks("user_email", user_email)}
+        errorMessage={errors.user_email?.errorMessage}
+        hasError={errors.user_email?.hasError}
+        {...getOverrideProps(overrides, "user_email")}
+      ></TextField>
+      <TextField
         label="Key"
         isRequired={true}
         isReadOnly={false}
@@ -171,6 +201,7 @@ export default function APIKeyCreateForm(props) {
           let { value } = e.target;
           if (onChange) {
             const modelFields = {
+              user_email,
               key: value,
               status,
               requests_made,
@@ -200,6 +231,7 @@ export default function APIKeyCreateForm(props) {
           let { value } = e.target;
           if (onChange) {
             const modelFields = {
+              user_email,
               key,
               status: value,
               requests_made,
@@ -233,6 +265,7 @@ export default function APIKeyCreateForm(props) {
             : parseInt(e.target.value);
           if (onChange) {
             const modelFields = {
+              user_email,
               key,
               status,
               requests_made: value,
@@ -266,6 +299,7 @@ export default function APIKeyCreateForm(props) {
             : parseInt(e.target.value);
           if (onChange) {
             const modelFields = {
+              user_email,
               key,
               status,
               requests_made,
@@ -301,6 +335,7 @@ export default function APIKeyCreateForm(props) {
             : parseFloat(e.target.value);
           if (onChange) {
             const modelFields = {
+              user_email,
               key,
               status,
               requests_made,
@@ -332,6 +367,7 @@ export default function APIKeyCreateForm(props) {
             e.target.value === "" ? "" : new Date(e.target.value).toISOString();
           if (onChange) {
             const modelFields = {
+              user_email,
               key,
               status,
               requests_made,
