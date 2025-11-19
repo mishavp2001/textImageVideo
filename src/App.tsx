@@ -6,12 +6,14 @@ import { pagesConfig } from './pages.config'
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import { APIKeyProvider } from '@/lib/APIKeyContext';
-import { Authenticator } from '@aws-amplify/ui-react';
-import '@aws-amplify/ui-react/styles.css';
+import ProtectedRoute from '@/components/auth/ProtectedRoute';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
 const MainPage = mainPageKey ? Pages[mainPageKey as keyof typeof Pages] : () => <></>;
+
+// Define which pages require authentication
+const protectedPages = ['MyAPIs', 'MyKeys', 'Analytics'];
 
 interface LayoutWrapperProps {
   children: React.ReactNode;
@@ -42,35 +44,43 @@ const AuthenticatedApp = () => {
           <MainPage />
         </LayoutWrapper>
       } />
-      {Object.entries(Pages).map(([path, Page]) => (
-        <Route
-          key={path}
-          path={`/${path}`}
-          element={
-            <LayoutWrapper currentPageName={path}>
-              <Page />
-            </LayoutWrapper>
-          }
-        />
-      ))}
+      {Object.entries(Pages).map(([path, Page]) => {
+        const isProtected = protectedPages.includes(path);
+
+        return (
+          <Route
+            key={path}
+            path={`/${path}`}
+            element={
+              <LayoutWrapper currentPageName={path}>
+                {isProtected ? (
+                  <ProtectedRoute>
+                    <Page />
+                  </ProtectedRoute>
+                ) : (
+                  <Page />
+                )}
+              </LayoutWrapper>
+            }
+          />
+        );
+      })}
     </Routes>
   );
 };
 
 function App() {
   return (
-    <Authenticator>
-      <AuthProvider>
-        <APIKeyProvider>
-          <QueryClientProvider client={queryClientInstance}>
-            <Router>
-              <AuthenticatedApp />
-            </Router>
-            <Toaster />
-          </QueryClientProvider>
-        </APIKeyProvider>
-      </AuthProvider>
-    </Authenticator>
+    <AuthProvider>
+      <APIKeyProvider>
+        <QueryClientProvider client={queryClientInstance}>
+          <Router>
+            <AuthenticatedApp />
+          </Router>
+          <Toaster />
+        </QueryClientProvider>
+      </APIKeyProvider>
+    </AuthProvider>
   )
 }
 

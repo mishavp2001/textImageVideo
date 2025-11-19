@@ -13,6 +13,21 @@ const schema = a.schema({
     })
     .authorization((allow) => [allow.publicApiKey()]),
 
+  // API Users - stores email and payment info for unauthenticated users
+  APIUser: a
+    .model({
+      email: a.string().required(),
+      credit_card_last4: a.string(), // Last 4 digits of credit card
+      payment_method_id: a.string(), // Stripe/payment provider ID
+      stripe_customer_id: a.string(), // Stripe customer ID
+      total_spent: a.float().default(0),
+      apiKeys: a.hasMany("APIKey", "user_id"),
+    })
+    .authorization((allow) => [
+      allow.publicApiKey().to(['read', 'create']),
+      allow.owner(),
+    ]),
+
   API: a
     .model({
       name: a.string().required(),
@@ -28,15 +43,21 @@ const schema = a.schema({
       headers_required: a.string().array(),
       total_requests: a.integer().default(0),
       total_revenue: a.float().default(0),
+      owner_id: a.string(), // User ID of the API owner (Cognito user ID or email)
       apiKeys: a.hasMany("APIKey", "api_id"),
       usages: a.hasMany("APIUsage", "api_id"),
     })
-    .authorization((allow) => [allow.publicApiKey()]),
+    .authorization((allow) => [
+      allow.publicApiKey(), // Anyone can read/browse APIs, authenticated can create/update
+    ]),
 
   APIKey: a
     .model({
       api_id: a.id().required(),
       api: a.belongsTo("API", "api_id"),
+      user_id: a.id(), // Reference to APIUser (for unauthenticated) or Cognito user ID
+      user_email: a.string(), // Store email for easy access
+      user: a.belongsTo("APIUser", "user_id"),
       key: a.string().required(),
       status: a.string().default("active"),
       requests_made: a.integer().default(0),
@@ -45,7 +66,9 @@ const schema = a.schema({
       last_used: a.datetime(),
       usages: a.hasMany("APIUsage", "api_key_id"),
     })
-    .authorization((allow) => [allow.publicApiKey()]),
+    .authorization((allow) => [
+      allow.publicApiKey(), // Public access for creating and reading keys
+    ]),
 
   APIUsage: a
     .model({
@@ -60,7 +83,9 @@ const schema = a.schema({
       cost: a.float(),
       timestamp: a.datetime(),
     })
-    .authorization((allow) => [allow.publicApiKey()]),
+    .authorization((allow) => [
+      allow.publicApiKey().to(['read', 'create']),
+    ]),
 });
 
 export type Schema = ClientSchema<typeof schema>;

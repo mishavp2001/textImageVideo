@@ -15,6 +15,47 @@ const getClient = () => {
 
 // Helper functions to match the Base44 SDK API structure
 export const apiClient = {
+  apiUsers: {
+    list: async () => {
+      const result: any = await getClient().graphql({
+        query: queries.listAPIUsers,
+      });
+      return result.data?.listAPIUsers?.items || [];
+    },
+    get: async (id: string) => {
+      const result: any = await getClient().graphql({
+        query: queries.getAPIUser,
+        variables: { id },
+      });
+      return result.data?.getAPIUser;
+    },
+    getByEmail: async (email: string) => {
+      const result: any = await getClient().graphql({
+        query: queries.listAPIUsers,
+        variables: {
+          filter: {
+            email: { eq: email }
+          }
+        },
+      });
+      const items = result.data?.listAPIUsers?.items || [];
+      return items.length > 0 ? items[0] : null;
+    },
+    create: async (data: any) => {
+      const result: any = await getClient().graphql({
+        query: mutations.createAPIUser,
+        variables: { input: data },
+      });
+      return result.data?.createAPIUser;
+    },
+    update: async (id: string, data: any) => {
+      const result: any = await getClient().graphql({
+        query: mutations.updateAPIUser,
+        variables: { input: { id, ...data } },
+      });
+      return result.data?.updateAPIUser;
+    },
+  },
   apis: {
     list: async () => {
       const result: any = await getClient().graphql({

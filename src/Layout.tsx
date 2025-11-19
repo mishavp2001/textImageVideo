@@ -1,8 +1,8 @@
 // @ts-nocheck
-import React from "react";
+import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Zap, LayoutGrid, Key, BarChart3, LogOut } from "lucide-react";
+import { Zap, LayoutGrid, Key, BarChart3, LogOut, LogIn, UserPlus } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -17,9 +17,20 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
+import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/AuthContext";
+import LoginDialog from "@/components/auth/LoginDialog";
+import SignupDialog from "@/components/auth/SignupDialog";
 
-const navigationItems = [
+const publicNavigationItems = [
+  {
+    title: "Browse APIs",
+    url: createPageUrl("Browse"),
+    icon: LayoutGrid,
+  },
+];
+
+const authenticatedNavigationItems = [
   {
     title: "Browse APIs",
     url: createPageUrl("Browse"),
@@ -49,7 +60,11 @@ interface LayoutProps {
 
 export default function Layout({ children }: LayoutProps) {
   const location = useLocation();
-  const { user, logout } = useAuth();
+  const { user, isAuthenticated, logout } = useAuth();
+  const [showLoginDialog, setShowLoginDialog] = useState(false);
+  const [showSignupDialog, setShowSignupDialog] = useState(false);
+
+  const navigationItems = isAuthenticated ? authenticatedNavigationItems : publicNavigationItems;
 
   return (
     <SidebarProvider>
@@ -95,28 +110,48 @@ export default function Layout({ children }: LayoutProps) {
           </SidebarContent>
 
           <SidebarFooter className="border-t border-slate-100 p-4">
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3 flex-1 min-w-0">
-                <div className="w-10 h-10 bg-gradient-to-br from-blue-100 to-purple-100 rounded-xl flex items-center justify-center">
-                  <span className="text-blue-700 font-bold text-sm">
-                    {user?.username?.[0]?.toUpperCase() || 'U'}
-                  </span>
+            {isAuthenticated ? (
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <div className="w-10 h-10 bg-gradient-to-br from-blue-100 to-purple-100 rounded-xl flex items-center justify-center">
+                    <span className="text-blue-700 font-bold text-sm">
+                      {user?.username?.[0]?.toUpperCase() || 'U'}
+                    </span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-slate-900 text-sm truncate">
+                      {user?.username || 'User'}
+                    </p>
+                    <p className="text-xs text-slate-500 truncate">{user?.userId}</p>
+                  </div>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-slate-900 text-sm truncate">
-                    {user?.username || 'User'}
-                  </p>
-                  <p className="text-xs text-slate-500 truncate">{user?.userId}</p>
-                </div>
+                <button
+                  onClick={logout}
+                  className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
+                  title="Logout"
+                >
+                  <LogOut className="w-4 h-4 text-slate-400" />
+                </button>
               </div>
-              <button
-                onClick={logout}
-                className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
-                title="Logout"
-              >
-                <LogOut className="w-4 h-4 text-slate-400" />
-              </button>
-            </div>
+            ) : (
+              <div className="space-y-2">
+                <Button
+                  onClick={() => setShowLoginDialog(true)}
+                  variant="outline"
+                  className="w-full justify-start gap-2"
+                >
+                  <LogIn className="w-4 h-4" />
+                  Sign In
+                </Button>
+                <Button
+                  onClick={() => setShowSignupDialog(true)}
+                  className="w-full justify-start gap-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                >
+                  <UserPlus className="w-4 h-4" />
+                  Sign Up
+                </Button>
+              </div>
+            )}
           </SidebarFooter>
         </Sidebar>
 
@@ -133,6 +168,24 @@ export default function Layout({ children }: LayoutProps) {
           </div>
         </main>
       </div>
+
+      {/* Auth Dialogs */}
+      <LoginDialog
+        open={showLoginDialog}
+        onOpenChange={setShowLoginDialog}
+        onSwitchToSignup={() => {
+          setShowLoginDialog(false);
+          setShowSignupDialog(true);
+        }}
+      />
+      <SignupDialog
+        open={showSignupDialog}
+        onOpenChange={setShowSignupDialog}
+        onSwitchToLogin={() => {
+          setShowSignupDialog(false);
+          setShowLoginDialog(true);
+        }}
+      />
     </SidebarProvider>
   );
 }

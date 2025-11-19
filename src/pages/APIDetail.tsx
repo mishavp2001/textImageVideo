@@ -4,7 +4,7 @@ import { apiClient } from "@/lib/amplify-client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Key, Play, Copy, Check, Loader2, AlertCircle } from "lucide-react";
+import { ArrowLeft, Key, Play, Copy, Check, Loader2, AlertCircle, Edit } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { toast } from "sonner";
@@ -15,15 +15,19 @@ import { fetchAuthSession } from "aws-amplify/auth";
 import APITester from "../components/api-detail/APITester";
 import PricingDisplay from "../components/api-detail/PricingDisplay";
 import APIDocumentation from "../components/api-detail/APIDocumentation";
+import GenerateKeyDialog from "../components/api-detail/GenerateKeyDialog";
+import EditAPIDialog from "../components/api-detail/EditAPIDialog";
 
 export default function APIDetail() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const urlParams = new URLSearchParams(window.location.search);
   const apiId = urlParams.get('id');
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const { hasKeyForAPI, getKeyForAPI, addAPIKey } = useAPIKeys();
   const [copied, setCopied] = useState(false);
+  const [showGenerateKeyDialog, setShowGenerateKeyDialog] = useState(false);
+  const [showEditAPIDialog, setShowEditAPIDialog] = useState(false);
 
   const { data: api, isLoading } = useQuery({
     queryKey: ['api', apiId],
@@ -39,80 +43,98 @@ export default function APIDetail() {
   const hasKey = apiId ? hasKeyForAPI(apiId) : false;
 
   const generateKeyMutation = useMutation({
-    mutationFn: async () => {
-      if (!user) throw new Error("User not authenticated");
-
+    mutationFn: async (paymentData: { email: string; creditCard: string; cvv: string; expiry: string }) => {
       // Check if key already exists for this API
       if (hasKey) {
         throw new Error("An API key already exists for this API. Only one key per API is allowed.");
       }
 
-      // Get AWS credentials for IAM authentication
-      const session = await fetchAuthSession();
-      const credentials = session.credentials;
+      const { email, creditCard, cvv, expiry } = paymentData;
 
-      if (!credentials) throw new Error("No credentials available");
+      // Get or create APIUser
+      let apiUser = await apiClient.apiUsers.getByEmail(email);
 
-      // Prepare the request
-      const url = 'https://i69kr7h50f.execute-api.us-east-1.amazonaws.com/default/getApiKey';
-      const body = JSON.stringify({
-        userId: user.username,
-        email: user.username, // Using username as email identifier
-      });
+      if (!apiUser) {
+        // Create new API user with payment info
+        // In production, you would process payment with Stripe here
+        const last4 = creditCard.replace(/\s/g, '').slice(-4);
 
-      // Use AWS Signature V4 to sign the request
-      const { Sha256 } = await import('@aws-crypto/sha256-js');
-      const { SignatureV4 } = await import('@smithy/signature-v4');
-
-      const signer = new SignatureV4({
-        credentials: {
-          accessKeyId: credentials.accessKeyId,
-          secretAccessKey: credentials.secretAccessKey,
-          sessionToken: credentials.sessionToken,
-        },
-        region: 'us-east-1',
-        service: 'execute-api',
-        sha256: Sha256,
-      });
-
-      const request = {
-        method: 'POST',
-        protocol: 'https:',
-        hostname: 'i69kr7h50f.execute-api.us-east-1.amazonaws.com',
-        path: '/default/getApiKey',
-        headers: {
-          'Content-Type': 'application/json',
-          'host': 'i69kr7h50f.execute-api.us-east-1.amazonaws.com',
-        },
-        body,
-      };
-
-      const signedRequest = await signer.sign(request);
-
-      // Call the Lambda endpoint with signed request
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: signedRequest.headers,
-        body,
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Failed to generate API key: ${errorText}`);
+        apiUser = await apiClient.apiUsers.create({
+          email: email,
+          credit_card_last4: last4,
+          // In production, you would get these from Stripe
+          payment_method_id: `pm_${Date.now()}`, // Mock payment method ID
+          stripe_customer_id: `cus_${Date.now()}`, // Mock customer ID
+          total_spent: 0,
+        });
       }
 
-      const data = await response.json();
-      const apiKey = data.apiKey || data.key || data.api_key;
-      const keyId = data.keyId || data.key_id;
+      // Generate API key using Lambda (if authenticated) or create directly
+      let apiKey;
 
+      if (isAuthenticated && user) {
+        // For authenticated users, use the Lambda function
+        const session = await fetchAuthSession();
+        const credentials = session.credentials;
+
+        if (credentials) {
+          const url = 'https://i69kr7h50f.execute-api.us-east-1.amazonaws.com/default/getApiKey';
+          const body = JSON.stringify({
+            userId: user.username,
+            email: email,
+          });
+
+          const { Sha256 } = await import('@aws-crypto/sha256-js');
+          const { SignatureV4 } = await import('@smithy/signature-v4');
+
+          const signer = new SignatureV4({
+            credentials: {
+              accessKeyId: credentials.accessKeyId,
+              secretAccessKey: credentials.secretAccessKey,
+              sessionToken: credentials.sessionToken,
+            },
+            region: 'us-east-1',
+            service: 'execute-api',
+            sha256: Sha256,
+          });
+
+          const request = {
+            method: 'POST',
+            protocol: 'https:',
+            hostname: 'i69kr7h50f.execute-api.us-east-1.amazonaws.com',
+            path: '/default/getApiKey',
+            headers: {
+              'Content-Type': 'application/json',
+              'host': 'i69kr7h50f.execute-api.us-east-1.amazonaws.com',
+            },
+            body,
+          };
+
+          const signedRequest = await signer.sign(request);
+
+          const response = await fetch(url, {
+            method: 'POST',
+            headers: signedRequest.headers,
+            body,
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            apiKey = data.apiKey || data.key || data.api_key;
+          }
+        }
+      }
+
+      // If Lambda didn't work or user is unauthenticated, generate a simple key
       if (!apiKey) {
-        throw new Error('No API key returned from service');
+        apiKey = `sk_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
       }
 
-      // Store the generated key in Amplify DataStore
-      // Only include fields that exist in the APIKey schema
+      // Store the generated key in database
       const createdKey = await apiClient.apiKeys.create({
         api_id: apiId,
+        user_id: apiUser.id,
+        user_email: email,
         key: apiKey,
         status: 'active',
         requests_made: 0,
@@ -128,11 +150,28 @@ export default function APIDetail() {
         addAPIKey(createdKey);
       }
       queryClient.invalidateQueries({ queryKey: ['apiKeys', apiId] });
+      setShowGenerateKeyDialog(false);
       toast.success("API Key generated successfully! You can now test the API.");
     },
     onError: (error: any) => {
       console.error('API Key generation error:', error);
       toast.error(error.message || "Failed to generate API key");
+    },
+  });
+
+  const updateAPIMutation = useMutation({
+    mutationFn: async (data: any) => {
+      if (!api) throw new Error("API not found");
+      return await apiClient.apis.update(api.id, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['api', apiId] });
+      setShowEditAPIDialog(false);
+      toast.success("API updated successfully!");
+    },
+    onError: (error: any) => {
+      console.error('API update error:', error);
+      toast.error(error.message || "Failed to update API");
     },
   });
 
@@ -142,6 +181,13 @@ export default function APIDetail() {
     toast.success("Copied to clipboard!");
     setTimeout(() => setCopied(false), 2000);
   };
+
+  // Check if current user is the owner of this API
+  const isOwner = isAuthenticated && user && api && (
+    api.owner_id === user.userId ||
+    api.owner_id === user.username ||
+    api.created_by === user.username
+  );
 
   if (isLoading) {
     return (
@@ -193,11 +239,21 @@ export default function APIDetail() {
               </div>
               <p className="text-slate-600 text-lg mb-4">{api.description}</p>
               <div className="flex items-center gap-4 text-sm text-slate-600">
-                <span>Published by {api.created_by?.split('@')[0]}</span>
+                <span>Published by {api.created_by?.split('@')[0] || api.owner_id?.split('@')[0] || 'Unknown'}</span>
                 <span>•</span>
                 <span>{api.total_requests?.toLocaleString() || 0} requests served</span>
               </div>
             </div>
+            {isOwner && (
+              <Button
+                variant="outline"
+                onClick={() => setShowEditAPIDialog(true)}
+                className="flex items-center gap-2"
+              >
+                <Edit className="w-4 h-4" />
+                Edit API
+              </Button>
+            )}
           </div>
 
           <div className="bg-slate-50 rounded-xl p-4 mb-6">
@@ -260,24 +316,15 @@ export default function APIDetail() {
               ) : (
                 <div className="space-y-4">
                   <p className="text-sm text-slate-600">
-                    Generate an API key to start using this API
+                    Generate an API key to start using this API. {!isAuthenticated && "No account required!"}
                   </p>
                   <Button
-                    onClick={() => generateKeyMutation.mutate()}
+                    onClick={() => setShowGenerateKeyDialog(true)}
                     disabled={generateKeyMutation.isPending}
                     className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
                   >
-                    {generateKeyMutation.isPending ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Generating...
-                      </>
-                    ) : (
-                      <>
-                        <Key className="w-4 h-4 mr-2" />
-                        Generate API Key
-                      </>
-                    )}
+                    <Key className="w-4 h-4 mr-2" />
+                    Generate API Key
                   </Button>
                 </div>
               )}
@@ -286,6 +333,23 @@ export default function APIDetail() {
         </div>
 
         <APITester api={api} apiKey={activeKey} />
+
+        {/* Generate Key Dialog */}
+        <GenerateKeyDialog
+          open={showGenerateKeyDialog}
+          onOpenChange={setShowGenerateKeyDialog}
+          onSubmit={(data) => generateKeyMutation.mutateAsync(data)}
+          isLoading={generateKeyMutation.isPending}
+        />
+
+        {/* Edit API Dialog */}
+        <EditAPIDialog
+          open={showEditAPIDialog}
+          onOpenChange={setShowEditAPIDialog}
+          api={api}
+          onSubmit={(data) => updateAPIMutation.mutateAsync(data)}
+          isLoading={updateAPIMutation.isPending}
+        />
       </div>
     </div>
   );

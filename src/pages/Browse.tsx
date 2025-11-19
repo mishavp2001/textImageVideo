@@ -14,12 +14,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useAuth } from "@/lib/AuthContext";
 
 import APICard from "../components/browse/APICard";
 import PublishAPIDialog from "../components/browse/PublishAPIDialog";
 import StatsOverview from "../components/browse/StatsOverview";
 
 export default function Browse() {
+  const { isAuthenticated } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [showPublishDialog, setShowPublishDialog] = useState(false);
@@ -46,13 +48,15 @@ export default function Browse() {
             <h1 className="text-4xl font-bold text-slate-900 mb-2">Discover APIs</h1>
             <p className="text-slate-600">Browse, test, and integrate powerful APIs into your applications</p>
           </div>
-          <Button
-            onClick={() => setShowPublishDialog(true)}
-            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg shadow-blue-500/25"
-          >
-            <Plus className="w-5 h-5 mr-2" />
-            Publish API
-          </Button>
+          {isAuthenticated && (
+            <Button
+              onClick={() => setShowPublishDialog(true)}
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg shadow-blue-500/25"
+            >
+              <Plus className="w-5 h-5 mr-2" />
+              Publish API
+            </Button>
+          )}
         </div>
 
         <StatsOverview apis={apis} />
