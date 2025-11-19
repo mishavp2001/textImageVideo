@@ -285,7 +285,7 @@ export default function APIDetail() {
           </div>
         </div>
 
-        <APITester api={api} apiKey={activeKey?.key} />
+        <APITester api={api} apiKey={activeKey} />
       </div>
     </div>
   );
