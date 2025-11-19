@@ -12,6 +12,52 @@ const schema = a.schema({
       content: a.string(),
     })
     .authorization((allow) => [allow.publicApiKey()]),
+
+  API: a
+    .model({
+      name: a.string().required(),
+      description: a.string(),
+      endpoint_url: a.string().required(),
+      method: a.string().default("GET"),
+      category: a.string(),
+      status: a.string().default("active"),
+      free_requests_limit: a.integer().default(100),
+      price_per_request: a.float().default(0.01),
+      example_request: a.json(),
+      example_response: a.json(),
+      headers_required: a.string().array(),
+      total_requests: a.integer().default(0),
+      total_revenue: a.float().default(0),
+    })
+    .authorization((allow) => [allow.publicApiKey()]),
+
+  APIKey: a
+    .model({
+      api_id: a.id().required(),
+      api: a.belongsTo("API", "api_id"),
+      key: a.string().required(),
+      status: a.string().default("active"),
+      requests_made: a.integer().default(0),
+      requests_this_month: a.integer().default(0),
+      total_spent: a.float().default(0),
+      last_used: a.datetime(),
+    })
+    .authorization((allow) => [allow.publicApiKey()]),
+
+  APIUsage: a
+    .model({
+      api_id: a.id().required(),
+      api: a.belongsTo("API", "api_id"),
+      api_key_id: a.id().required(),
+      apiKey: a.belongsTo("APIKey", "api_key_id"),
+      request_method: a.string(),
+      request_params: a.json(),
+      response_status: a.integer(),
+      response_time: a.integer(),
+      cost: a.float(),
+      timestamp: a.datetime(),
+    })
+    .authorization((allow) => [allow.publicApiKey()]),
 });
 
 export type Schema = ClientSchema<typeof schema>;
