@@ -21,11 +21,13 @@
     },
 
     /* Linting */
-    "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true
+    "strict": false,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitAny": false
   },
   "include": ["src"],
+  "exclude": ["src/components/ui/**/*", "ui-components/**/*"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

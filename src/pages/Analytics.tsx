@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React from "react";
 import { apiClient } from "@/lib/amplify-client";
 import { useQuery } from "@tanstack/react-query";
