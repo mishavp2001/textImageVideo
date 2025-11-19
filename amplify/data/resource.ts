@@ -28,6 +28,8 @@ const schema = a.schema({
       headers_required: a.string().array(),
       total_requests: a.integer().default(0),
       total_revenue: a.float().default(0),
+      apiKeys: a.hasMany("APIKey", "api_id"),
+      usages: a.hasMany("APIUsage", "api_id"),
     })
     .authorization((allow) => [allow.publicApiKey()]),
 
@@ -41,6 +43,7 @@ const schema = a.schema({
       requests_this_month: a.integer().default(0),
       total_spent: a.float().default(0),
       last_used: a.datetime(),
+      usages: a.hasMany("APIUsage", "api_key_id"),
     })
     .authorization((allow) => [allow.publicApiKey()]),
 
