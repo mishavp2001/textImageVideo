@@ -3,9 +3,10 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Activity, DollarSign, Zap } from "lucide-react";
+import { ArrowRight, Activity, DollarSign, Zap, Key } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+import { useAPIKeys } from "@/lib/APIKeyContext";
 
 const categoryColors = {
   "AI/ML": "bg-purple-100 text-purple-700 border-purple-200",
@@ -27,6 +28,9 @@ const methodColors = {
 };
 
 export default function APICard({ api }) {
+  const { hasKeyForAPI } = useAPIKeys();
+  const hasKey = hasKeyForAPI(api.id);
+
   return (
     <Card className="group hover:shadow-xl transition-all duration-300 border-slate-200/60 hover:border-blue-300 overflow-hidden bg-white">
       <div className="h-2 bg-gradient-to-r from-blue-600 to-purple-600" />
@@ -35,9 +39,17 @@ export default function APICard({ api }) {
           <Badge className={`${categoryColors[api.category]} border font-medium`}>
             {api.category}
           </Badge>
-          <Badge variant="outline" className={`${methodColors[api.method]} border font-mono text-xs`}>
-            {api.method}
-          </Badge>
+          <div className="flex items-center gap-2">
+            {hasKey && (
+              <Badge className="bg-green-100 text-green-700 border-green-200 border font-medium">
+                <Key className="w-3 h-3 mr-1" />
+                Active
+              </Badge>
+            )}
+            <Badge variant="outline" className={`${methodColors[api.method]} border font-mono text-xs`}>
+              {api.method}
+            </Badge>
+          </div>
         </div>
         <CardTitle className="text-xl font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
           {api.name}

@@ -9,6 +9,7 @@ import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/AuthContext";
+import { useAPIKeys } from "@/lib/APIKeyContext";
 import { fetchAuthSession } from "aws-amplify/auth";
 
 import APITester from "../components/api-detail/APITester";
@@ -21,6 +22,7 @@ export default function APIDetail() {
   const urlParams = new URLSearchParams(window.location.search);
   const apiId = urlParams.get('id');
   const { user } = useAuth();
+  const { hasKeyForAPI, getKeyForAPI, addAPIKey } = useAPIKeys();
   const [copied, setCopied] = useState(false);
 
   const { data: api, isLoading } = useQuery({
@@ -32,19 +34,18 @@ export default function APIDetail() {
     enabled: !!apiId,
   });
 
-  const { data: apiKeys = [] } = useQuery({
-    queryKey: ['apiKeys', apiId, user?.userId],
-    queryFn: async () => {
-      if (!user) return [];
-      const keys = await apiClient.apiKeys.list();
-      return keys.filter((k: any) => k.api_id === apiId && k.created_by === user.username);
-    },
-    enabled: !!apiId && !!user,
-  });
+  // Get the active key for this API from context
+  const activeKey = apiId ? getKeyForAPI(apiId) : undefined;
+  const hasKey = apiId ? hasKeyForAPI(apiId) : false;
 
   const generateKeyMutation = useMutation({
     mutationFn: async () => {
       if (!user) throw new Error("User not authenticated");
+
+      // Check if key already exists for this API
+      if (hasKey) {
+        throw new Error("An API key already exists for this API. Only one key per API is allowed.");
+      }
 
       // Get AWS credentials for IAM authentication
       const session = await fetchAuthSession();
@@ -110,7 +111,7 @@ export default function APIDetail() {
 
       // Store the generated key in Amplify DataStore
       // Only include fields that exist in the APIKey schema
-      return apiClient.apiKeys.create({
+      const createdKey = await apiClient.apiKeys.create({
         api_id: apiId,
         key: apiKey,
         status: 'active',
@@ -118,10 +119,16 @@ export default function APIDetail() {
         requests_this_month: 0,
         total_spent: 0,
       });
+
+      return createdKey;
     },
-    onSuccess: () => {
+    onSuccess: (createdKey) => {
+      // Add the key to context so all routes are aware immediately
+      if (createdKey) {
+        addAPIKey(createdKey);
+      }
       queryClient.invalidateQueries({ queryKey: ['apiKeys', apiId] });
-      toast.success("API Key generated successfully!");
+      toast.success("API Key generated successfully! You can now test the API.");
     },
     onError: (error: any) => {
       console.error('API Key generation error:', error);
@@ -159,8 +166,6 @@ export default function APIDetail() {
       </div>
     );
   }
-
-  const activeKey = apiKeys?.find(k => k.status === 'active');
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-6 lg:p-8">

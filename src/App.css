@@ -1,1 +1,11 @@
 /* App styles */
+
+body {
+    background-color: rgb(244, 244, 244);
+
+
+    button.amplify-button {
+        background-color: rgb(56, 103, 133);
+        color: white;
+    }
+}

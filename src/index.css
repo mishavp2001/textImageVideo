@@ -74,11 +74,31 @@
   }
 }
 
-@layer base {
-  * {
-    @apply border-border outline-ring/50;
+/* Add AFTER @tailwind directives */
+/* Fix Amplify UI buttons being transparent due to Tailwind reset */
+@layer components {
+  /* Restore Amplify UI button backgrounds */
+
+  .amplify-button--primary {
+    background-color: var(--amplify-colors-brand-primary-80, #047d95) !important;
+    color: var(--amplify-colors-font-inverse, white) !important;
   }
-  body {
-    @apply bg-background text-foreground;
+
+  .amplify-button--primary:hover {
+    background-color: var(--amplify-colors-brand-primary-90, #036b7f) !important;
+  }
+
+  .amplify-button--link {
+    background-color: transparent !important;
+  }
+
+  /* Ensure other Amplify button variants work */
+  .amplify-button--secondary {
+    background-color: var(--amplify-colors-background-secondary, #e5e7eb) !important;
+  }
+
+  .amplify-button--destructive {
+    background-color: var(--amplify-colors-red-80, #dc2626) !important;
+    color: white !important;
   }
 }
