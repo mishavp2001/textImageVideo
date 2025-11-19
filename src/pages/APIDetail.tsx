@@ -9,6 +9,7 @@ import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/AuthContext";
+import { fetchAuthSession } from "aws-amplify/auth";
 
 import APITester from "../components/api-detail/APITester";
 import PricingDisplay from "../components/api-detail/PricingDisplay";
@@ -43,16 +44,84 @@ export default function APIDetail() {
 
   const generateKeyMutation = useMutation({
     mutationFn: async () => {
-      const randomKey = `apihub_${Math.random().toString(36).substring(2, 15)}${Math.random().toString(36).substring(2, 15)}`;
+      if (!user) throw new Error("User not authenticated");
+
+      // Get AWS credentials for IAM authentication
+      const session = await fetchAuthSession();
+      const credentials = session.credentials;
+
+      if (!credentials) throw new Error("No credentials available");
+
+      // Prepare the request
+      const url = 'https://i69kr7h50f.execute-api.us-east-1.amazonaws.com/default/getApiKey';
+      const body = JSON.stringify({
+        userId: user.username,
+        email: user.username, // Using username as email identifier
+      });
+
+      // Use AWS Signature V4 to sign the request
+      const { Sha256 } = await import('@aws-crypto/sha256-js');
+      const { SignatureV4 } = await import('@smithy/signature-v4');
+
+      const signer = new SignatureV4({
+        credentials: {
+          accessKeyId: credentials.accessKeyId,
+          secretAccessKey: credentials.secretAccessKey,
+          sessionToken: credentials.sessionToken,
+        },
+        region: 'us-east-1',
+        service: 'execute-api',
+        sha256: Sha256,
+      });
+
+      const request = {
+        method: 'POST',
+        protocol: 'https:',
+        hostname: 'i69kr7h50f.execute-api.us-east-1.amazonaws.com',
+        path: '/default/getApiKey',
+        headers: {
+          'Content-Type': 'application/json',
+          'host': 'i69kr7h50f.execute-api.us-east-1.amazonaws.com',
+        },
+        body,
+      };
+
+      const signedRequest = await signer.sign(request);
+
+      // Call the Lambda endpoint with signed request
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: signedRequest.headers,
+        body,
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to generate API key: ${errorText}`);
+      }
+
+      const data = await response.json();
+      const apiKey = data.apiKey || data.key || data.api_key;
+
+      if (!apiKey) {
+        throw new Error('No API key returned from service');
+      }
+
+      // Store the generated key in Amplify DataStore
       return apiClient.apiKeys.create({
         api_id: apiId,
-        key: randomKey,
+        key: apiKey,
         status: 'active',
+        created_by: user.username,
       });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['apiKeys', apiId] });
       toast.success("API Key generated successfully!");
+    },
+    onError: (error: any) => {
+      console.error('API Key generation error:', error);
+      toast.error(error.message || "Failed to generate API key");
     },
   });
 

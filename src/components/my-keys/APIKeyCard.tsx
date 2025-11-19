@@ -31,6 +31,17 @@ export default function APIKeyCard({ keyData }) {
     return key.substring(0, 12) + '•'.repeat(20);
   };
 
+  const formatDate = (dateValue) => {
+    if (!dateValue) return 'Unknown date';
+    try {
+      const date = new Date(dateValue);
+      if (isNaN(date.getTime())) return 'Unknown date';
+      return format(date, 'MMM d, yyyy');
+    } catch (error) {
+      return 'Unknown date';
+    }
+  };
+
   return (
     <Card className="border-slate-200/60 hover:shadow-lg transition-all duration-300">
       <CardContent className="p-6">
@@ -42,11 +53,11 @@ export default function APIKeyCard({ keyData }) {
                   {keyData.api?.name || 'Unknown API'}
                 </h3>
                 <p className="text-sm text-slate-600">
-                  Created {format(new Date(keyData.created_date), 'MMM d, yyyy')}
+                  Created {formatDate(keyData.createdAt || keyData.created_date || keyData.created_at)}
                 </p>
               </div>
-              <Badge className={`${statusColors[keyData.status]} border font-medium capitalize`}>
-                {keyData.status}
+              <Badge className={`${statusColors[keyData.status || 'active']} border font-medium capitalize`}>
+                {keyData.status || 'active'}
               </Badge>
             </div>
 
