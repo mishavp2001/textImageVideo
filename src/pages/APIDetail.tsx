@@ -102,17 +102,21 @@ export default function APIDetail() {
 
       const data = await response.json();
       const apiKey = data.apiKey || data.key || data.api_key;
+      const keyId = data.keyId || data.key_id;
 
       if (!apiKey) {
         throw new Error('No API key returned from service');
       }
 
       // Store the generated key in Amplify DataStore
+      // Only include fields that exist in the APIKey schema
       return apiClient.apiKeys.create({
         api_id: apiId,
         key: apiKey,
         status: 'active',
-        created_by: user.username,
+        requests_made: 0,
+        requests_this_month: 0,
+        total_spent: 0,
       });
     },
     onSuccess: () => {

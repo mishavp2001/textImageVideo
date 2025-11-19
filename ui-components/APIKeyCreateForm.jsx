@@ -15,9 +15,11 @@ export default function APIKeyCreateForm(props) {
     onValidate,
     onChange,
     overrides,
+    api_id,
     ...rest
   } = props;
   const initialValues = {
+    api_id: api_id,
     key: "",
     status: "",
     requests_made: "",
@@ -25,6 +27,7 @@ export default function APIKeyCreateForm(props) {
     total_spent: "",
     last_used: "",
   };
+  const [api_id_state, setApi_id] = React.useState(initialValues.api_id);
   const [key, setKey] = React.useState(initialValues.key);
   const [status, setStatus] = React.useState(initialValues.status);
   const [requests_made, setRequests_made] = React.useState(
@@ -39,6 +42,7 @@ export default function APIKeyCreateForm(props) {
   const [last_used, setLast_used] = React.useState(initialValues.last_used);
   const [errors, setErrors] = React.useState({});
   const resetStateValues = () => {
+    setApi_id(initialValues.api_id);
     setKey(initialValues.key);
     setStatus(initialValues.status);
     setRequests_made(initialValues.requests_made);
@@ -98,6 +102,7 @@ export default function APIKeyCreateForm(props) {
       onSubmit={async (event) => {
         event.preventDefault();
         let modelFields = {
+          api_id: api_id || api_id_state,
           key,
           status,
           requests_made,
