@@ -120,8 +120,33 @@ export const apiClient = {
       return result.data?.getAPIKey;
     },
     create: async (data: any) => {
+      // Use a custom mutation that doesn't fetch the user relationship
+      // to avoid null errors when user relationship isn't established yet
+      const customCreateAPIKey = /* GraphQL */ `
+        mutation CreateAPIKey(
+          $condition: ModelAPIKeyConditionInput
+          $input: CreateAPIKeyInput!
+        ) {
+          createAPIKey(condition: $condition, input: $input) {
+            api_id
+            createdAt
+            id
+            key
+            last_used
+            requests_made
+            requests_this_month
+            status
+            total_spent
+            updatedAt
+            user_email
+            user_id
+            __typename
+          }
+        }
+      `;
+
       const result: any = await getClient().graphql({
-        query: mutations.createAPIKey,
+        query: customCreateAPIKey,
         variables: { input: data },
       });
       return result.data?.createAPIKey;
