@@ -90,7 +90,7 @@ export default function APICard({ api }) {
           </div>
         </div>
 
-        <Link to={createPageUrl(`APIDetail?id=${api.id}`)}>
+        <Link to={`/api/${encodeURIComponent(api.name)}`}>
           <Button className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 group-hover:shadow-lg transition-all duration-300">
             View Details
             <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />

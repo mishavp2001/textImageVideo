@@ -70,6 +70,18 @@ export const apiClient = {
       });
       return result.data?.getAPI;
     },
+    getByName: async (name: string) => {
+      const result: any = await getClient().graphql({
+        query: queries.listAPIS,
+        variables: {
+          filter: {
+            name: { eq: name }
+          }
+        },
+      });
+      const items = result.data?.listAPIS?.items || [];
+      return items.length > 0 ? items[0] : null;
+    },
     create: async (data: any) => {
       // Stringify JSON fields for GraphQL
       const input = {

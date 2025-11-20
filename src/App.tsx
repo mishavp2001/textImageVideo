@@ -44,6 +44,17 @@ const AuthenticatedApp = () => {
           <MainPage />
         </LayoutWrapper>
       } />
+
+      {/* API detail route with name parameter */}
+      <Route
+        path="/api/:apiName"
+        element={
+          <LayoutWrapper currentPageName="APIDetail">
+            <Pages.APIDetail />
+          </LayoutWrapper>
+        }
+      />
+
       {Object.entries(Pages).map(([path, Page]) => {
         const isProtected = protectedPages.includes(path);
 

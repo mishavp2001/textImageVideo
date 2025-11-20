@@ -61,7 +61,7 @@ export default function MyAPICard({ api }: MyAPICardProps) {
         </div>
 
         <div className="flex gap-2">
-          <Link to={createPageUrl(`APIDetail?id=${api.id}`)} className="flex-1">
+          <Link to={`/api/${encodeURIComponent(api.name)}`} className="flex-1">
             <Button variant="outline" className="w-full">
               <ExternalLink className="w-4 h-4 mr-2" />
               View

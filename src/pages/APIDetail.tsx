@@ -5,7 +5,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Key, Play, Copy, Check, Loader2, AlertCircle, Edit } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/AuthContext";
@@ -21,6 +21,7 @@ import EditAPIDialog from "../components/api-detail/EditAPIDialog";
 export default function APIDetail() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { apiName } = useParams(); // Get apiName from URL params
   const urlParams = new URLSearchParams(window.location.search);
   const apiId = urlParams.get('id');
   const { user, isAuthenticated } = useAuth();
@@ -29,18 +30,26 @@ export default function APIDetail() {
   const [showGenerateKeyDialog, setShowGenerateKeyDialog] = useState(false);
   const [showEditAPIDialog, setShowEditAPIDialog] = useState(false);
 
+  // Fetch API by name or ID
   const { data: api, isLoading } = useQuery({
-    queryKey: ['api', apiId],
+    queryKey: ['api', apiName || apiId],
     queryFn: async () => {
-      if (!apiId) return null;
-      return await apiClient.apis.get(apiId);
+      if (apiName) {
+        // Fetch by name from URL param
+        return await apiClient.apis.getByName(apiName);
+      } else if (apiId) {
+        // Fetch by ID from query param (legacy support)
+        return await apiClient.apis.get(apiId);
+      }
+      return null;
     },
-    enabled: !!apiId,
+    enabled: !!(apiName || apiId),
   });
 
   // Get the active key for this API from context
-  const activeKey = apiId ? getKeyForAPI(apiId) : undefined;
-  const hasKey = apiId ? hasKeyForAPI(apiId) : false;
+  const currentApiId = api?.id || apiId;
+  const activeKey = currentApiId ? getKeyForAPI(currentApiId) : undefined;
+  const hasKey = currentApiId ? hasKeyForAPI(currentApiId) : false;
 
   const generateKeyMutation = useMutation({
     mutationFn: async (paymentData: { email: string; creditCard: string; cvv: string; expiry: string }) => {
@@ -132,7 +141,7 @@ export default function APIDetail() {
 
       // Store the generated key in database
       const createdKey = await apiClient.apiKeys.create({
-        api_id: apiId,
+        api_id: currentApiId,
         user_id: apiUser.id,
         user_email: email,
         key: apiKey,
@@ -149,7 +158,7 @@ export default function APIDetail() {
       if (createdKey) {
         addAPIKey(createdKey);
       }
-      queryClient.invalidateQueries({ queryKey: ['apiKeys', apiId] });
+      queryClient.invalidateQueries({ queryKey: ['apiKeys', currentApiId] });
       setShowGenerateKeyDialog(false);
       toast.success("API Key generated successfully! You can now test the API.");
     },
@@ -165,7 +174,7 @@ export default function APIDetail() {
       return await apiClient.apis.update(api.id, data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['api', apiId] });
+      queryClient.invalidateQueries({ queryKey: ['api', apiName || apiId] });
       setShowEditAPIDialog(false);
       toast.success("API updated successfully!");
     },

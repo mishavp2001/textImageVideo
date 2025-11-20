@@ -108,7 +108,10 @@ export default function APIKeyCard({ keyData }) {
           </div>
 
           <div className="flex lg:flex-col gap-2">
-            <Link to={createPageUrl(`APIDetail?id=${keyData.api_id}`)} className="flex-1 lg:flex-none">
+            <Link
+              to={keyData.api?.name ? `/api/${encodeURIComponent(keyData.api.name)}` : createPageUrl(`APIDetail?id=${keyData.api_id}`)}
+              className="flex-1 lg:flex-none"
+            >
               <Button variant="outline" className="w-full">
                 <ExternalLink className="w-4 h-4 lg:mr-0 mr-2" />
                 <span className="lg:hidden">View API</span>
