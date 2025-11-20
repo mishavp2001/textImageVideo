@@ -3,6 +3,7 @@ import APIDetail from './pages/APIDetail';
 import MyAPIs from './pages/MyAPIs';
 import MyKeys from './pages/MyKeys';
 import Analytics from './pages/Analytics';
+import Profile from './pages/Profile';
 import Layout from './Layout';
 
 export const PAGES = {
@@ -11,6 +12,7 @@ export const PAGES = {
     "MyAPIs": MyAPIs,
     "MyKeys": MyKeys,
     "Analytics": Analytics,
+    "Profile": Profile,
 }
 
 export const pagesConfig = {

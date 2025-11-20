@@ -13,7 +13,7 @@ const mainPageKey = mainPage ?? Object.keys(Pages)[0];
 const MainPage = mainPageKey ? Pages[mainPageKey as keyof typeof Pages] : () => <></>;
 
 // Define which pages require authentication
-const protectedPages = ['MyAPIs', 'MyKeys', 'Analytics'];
+const protectedPages = ['MyAPIs', 'MyKeys', 'Analytics', 'Profile'];
 
 interface LayoutWrapperProps {
   children: React.ReactNode;

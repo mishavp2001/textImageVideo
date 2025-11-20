@@ -10,13 +10,14 @@ import { createPageUrl } from "@/utils";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/AuthContext";
 import { useAPIKeys } from "@/lib/APIKeyContext";
-import { fetchAuthSession } from "aws-amplify/auth";
+import { fetchAuthSession, signUp } from "aws-amplify/auth";
 
 import APITester from "../components/api-detail/APITester";
 import PricingDisplay from "../components/api-detail/PricingDisplay";
 import APIDocumentation from "../components/api-detail/APIDocumentation";
 import GenerateKeyDialog from "../components/api-detail/GenerateKeyDialog";
 import EditAPIDialog from "../components/api-detail/EditAPIDialog";
+import VerifyEmailDialog from "../components/auth/VerifyEmailDialog";
 
 export default function APIDetail() {
   const navigate = useNavigate();
@@ -29,6 +30,8 @@ export default function APIDetail() {
   const [copied, setCopied] = useState(false);
   const [showGenerateKeyDialog, setShowGenerateKeyDialog] = useState(false);
   const [showEditAPIDialog, setShowEditAPIDialog] = useState(false);
+  const [showVerificationDialog, setShowVerificationDialog] = useState(false);
+  const [pendingUserEmail, setPendingUserEmail] = useState<string>("");
 
   // Fetch API by name or ID
   const { data: api, isLoading } = useQuery({
@@ -62,8 +65,10 @@ export default function APIDetail() {
 
       // Get or create APIUser
       let apiUser = await apiClient.apiUsers.getByEmail(email);
+      let isNewUser = false;
 
       if (!apiUser) {
+        isNewUser = true;
         // Create new API user with payment info
         // In production, you would process payment with Stripe here
         const last4 = creditCard.replace(/\s/g, '').slice(-4);
@@ -76,6 +81,36 @@ export default function APIDetail() {
           stripe_customer_id: `cus_${Date.now()}`, // Mock customer ID
           total_spent: 0,
         });
+
+        // For anonymous users, create a Cognito account
+        if (!isAuthenticated) {
+          try {
+            // Generate a temporary password
+            const tempPassword = `Temp${Date.now()}!${Math.random().toString(36).substring(2, 10)}`;
+
+            await signUp({
+              username: email,
+              password: tempPassword,
+              options: {
+                userAttributes: {
+                  email: email,
+                },
+              },
+            });
+
+            // Store email for verification dialog
+            setPendingUserEmail(email);
+
+            console.log("Cognito account created for:", email);
+          } catch (error: any) {
+            console.error("Error creating Cognito account:", error);
+
+            // If user already exists in Cognito, that's okay - they can still use the API key
+            if (error.name !== "UsernameExistsException") {
+              console.warn("Failed to create Cognito account, but continuing with API key generation");
+            }
+          }
+        }
       }
 
       // Generate API key using Lambda (if authenticated) or create directly
@@ -160,7 +195,14 @@ export default function APIDetail() {
       }
       queryClient.invalidateQueries({ queryKey: ['apiKeys', currentApiId] });
       setShowGenerateKeyDialog(false);
-      toast.success("API Key generated successfully! You can now test the API.");
+
+      // Show verification dialog for new anonymous users
+      if (!isAuthenticated && pendingUserEmail) {
+        setShowVerificationDialog(true);
+        toast.success("API Key generated! Please check your email to verify your account.");
+      } else {
+        toast.success("API Key generated successfully! You can now test the API.");
+      }
     },
     onError: (error: any) => {
       console.error('API Key generation error:', error);
@@ -357,6 +399,16 @@ export default function APIDetail() {
           api={api}
           onSubmit={(data) => updateAPIMutation.mutateAsync(data)}
           isLoading={updateAPIMutation.isPending}
+        />
+
+        {/* Email Verification Dialog */}
+        <VerifyEmailDialog
+          open={showVerificationDialog}
+          onOpenChange={setShowVerificationDialog}
+          email={pendingUserEmail}
+          onVerified={() => {
+            toast.success("You can now sign in to access your profile!");
+          }}
         />
       </div>
     </div>

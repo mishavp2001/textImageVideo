@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Zap, LayoutGrid, Key, BarChart3, LogOut, LogIn, UserPlus } from "lucide-react";
+import { Zap, LayoutGrid, Key, BarChart3, LogOut, LogIn, UserPlus, User } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -50,6 +50,11 @@ const authenticatedNavigationItems = [
     title: "Analytics",
     url: createPageUrl("Analytics"),
     icon: BarChart3,
+  },
+  {
+    title: "Profile",
+    url: createPageUrl("Profile"),
+    icon: User,
   },
 ];
 
