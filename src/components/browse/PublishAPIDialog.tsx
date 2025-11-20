@@ -79,7 +79,6 @@ export default function PublishAPIDialog({ open, onOpenChange }: PublishAPIDialo
       const dataToSubmit = {
         ...formData,
         owner_id: user?.userId || user?.username, // Set the owner
-        created_by: user?.username || user?.email, // Set creator
         example_request: formData.example_request && formData.example_request.trim() ?
           JSON.parse(formData.example_request) : null,
         example_response: formData.example_response && formData.example_response.trim() ?

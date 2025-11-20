@@ -185,8 +185,7 @@ export default function APIDetail() {
   // Check if current user is the owner of this API
   const isOwner = isAuthenticated && user && api && (
     api.owner_id === user.userId ||
-    api.owner_id === user.username ||
-    api.created_by === user.username
+    api.owner_id === user.username
   );
 
   if (isLoading) {
@@ -239,7 +238,7 @@ export default function APIDetail() {
               </div>
               <p className="text-slate-600 text-lg mb-4">{api.description}</p>
               <div className="flex items-center gap-4 text-sm text-slate-600">
-                <span>Published by {api.created_by?.split('@')[0] || api.owner_id?.split('@')[0] || 'Unknown'}</span>
+                <span>Published by {api.owner_id?.split('@')[0] || 'Unknown'}</span>
                 <span>•</span>
                 <span>{api.total_requests?.toLocaleString() || 0} requests served</span>
               </div>
